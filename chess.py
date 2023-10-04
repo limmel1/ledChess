@@ -53,7 +53,7 @@ def setPiece(gameBoard, row, col, newColor, newType, newMove):
 # move piece
 def movePiece(gameBoard, ogRow, ogCol, newRow, newCol):
     # pawn->queen promotion
-    if gameBoard.board[ogRow][ogCol].type = PAWN:
+    if gameBoard.board[ogRow][ogCol].type == PAWN:
         if newRow == 0 or newRow == BOARDSIZE-1:
             gameBoard.board[newRow][newCol].type = QUEEN
 
@@ -79,7 +79,7 @@ def setupBoard(newGame):
     color = BLACK
 
     for row in BOARDSIZE:
-        if row = 3:
+        if row == 3:
             color = WHITE
         if row == 6 or row == 1:
             for col in BOARDSIZE:
@@ -117,7 +117,7 @@ def boardTurn(gameBoard, playerColor):
         newRow=int(input[4])
         if moveValid(gameBoard,playerColor,ogRow,ogCol,newRow,newCol):
             turn=false
-        else
+        else:
             print('invalid move or input!! try again...')
 
 def moveValid():
@@ -223,30 +223,23 @@ def pawnMoveCheck(gameBoard, row, col):
         moveList.append([row+direction,col])
 
     # move pawn forward by 2
-    if gameBoard.board[row][col].moved==False and gameBoard.board[row+direction][col].type==EMPTY
-            and gameBoard.board[row+direction*2][col].type==EMPTY:
+    if gameBoard.board[row][col].moved==False and gameBoard.board[row+direction][col].type==EMPTY and gameBoard.board[row+direction*2][col].type==EMPTY:
         moveList.append([row+direction*2,col])
 
     # take piece on right
-    if (not outOfBounds(row+direction, col+1)) and gameBoard.board[row+direction][col+1].color!=gameBoard.board[row][col].color
-            and gameBoard.board[row+direction][col+1].type!=EMPTY:
+    if (not outOfBounds(row+direction, col+1)) and gameBoard.board[row+direction][col+1].color!=gameBoard.board[row][col].color and gameBoard.board[row+direction][col+1].type!=EMPTY:
         moveList.append([row+direction,col+1])
 
     # take piece on left
-    if (not outOfBounds(row+direction, col-1)) and gameBoard.board[row+direction][col-1].color!=gameBoard.board[row][col].color
-            and gameBoard.board[row+direction][col-1].type!=EMPTY:
+    if (not outOfBounds(row+direction, col-1)) and gameBoard.board[row+direction][col-1].color!=gameBoard.board[row][col].color and gameBoard.board[row+direction][col-1].type!=EMPTY:
         moveList.append([row+direction,col-1])
 
     # en passant on right this is not correct must check prev move
-    if (not outOfBounds(row, col+1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col+1].type==PAWN
-            and gameBoard.board[row+direction][col].type==EMPTY and gameBoard.board[row+direction][col+1].type==EMPTY
-            and gameBoard.board[row][col+1].color!=gameBoard.board[row][col].color:
+    if (not outOfBounds(row, col+1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col+1].type==PAWN and gameBoard.board[row+direction][col].type==EMPTY and gameBoard.board[row+direction][col+1].type==EMPTY and gameBoard.board[row][col+1].color!=gameBoard.board[row][col].color:
         moveList.append([row+direction,col+1])
 
     # en passant on left this is not correct must check prev move
-    if (not outOfBounds(row, col-1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col-1].type==PAWN
-            and gameBoard.board[row-direction][col].type==EMPTY and gameBoard.board[row+direction][col-1].type==EMPTY
-            and gameBoard.board[row][col-1].color!=gameBoard.board[row][col].color:
+    if (not outOfBounds(row, col-1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col-1].type==PAWN and gameBoard.board[row-direction][col].type==EMPTY and gameBoard.board[row+direction][col-1].type==EMPTY and gameBoard.board[row][col-1].color!=gameBoard.board[row][col].color:
         moveList.append([row+direction,col-1])
     return moveList
 

@@ -39,7 +39,7 @@ def createGame():
 
 # check if piece in bounds
 def outOfBounds(row, col):
-    return row < 0 or row >= BOARDSIZE or col < 0 or col >= BOARDSIZE:
+    return row < 0 or row >= BOARDSIZE or col < 0 or col >= BOARDSIZE
 
 # update piece info
 def setPiece(gameBoard, row, col, newColor, newType, newMove):
@@ -55,7 +55,7 @@ def movePiece(gameBoard, ogRow, ogCol, newRow, newCol):
             gameBoard.board[newRow][newCol].type = QUEEN
 
     # en passant not functioning correctly
-    if newCol != ogCol and gameBoard.board[newRow][newCol].type != PAWN
+    if newCol != ogCol and gameBoard.board[newRow][newCol].type != PAWN:
         setPiece(gameBoard, ogRow, newCol, EMPTY, EMPTY, True)
 
     # move to new pos
@@ -112,9 +112,17 @@ def boardTurn(gameBoard, playerColor):
         ogRow=BOARDSIZE-((int)(input[1])-(int)('0'))
         newCol=(int)input[3]-(int)('A')
         newRow=BOARDSIZE-((int)(input[4])-(int)('0'))
+        if moveValid(gameBoard,playerColor,ogRow,ogCol,newRow,newCol):
+            turn=false
+        else
+            print('invalid move or input!! try again...')
 
-def moveValidation():
-    return False
+def moveValid():
+    if gameBoard-board[ogRow][ogCol].color==playerColor:
+        if [newRow,newCol] in gameBoard.board[ogRow][ogCol].moveList:
+            movePiece(gameBoard, ogRow, ogCol, newRow, newCol)
+            return true
+    return false
 
 def calculateMoves(gameBoard):
     for row in BOARDSIZE:
@@ -153,13 +161,13 @@ def queenMoveCheck(gameBoard, row, col):
     rookMoveCheck(gameBoard, row, col)
 
 def bishopMoveCheck(gameBoard, row, col):
-    clearPath(gameBoard, row, col, 1, 1);
-    clearPath(gameBoard, row, col, 1, -1);
-    clearPath(gameBoard, row, col, -1, 1);
-    clearPath(gameBoard, row, col, -1, -1);
+    clearPath(gameBoard, row, col, 1, 1)
+    clearPath(gameBoard, row, col, 1, -1)
+    clearPath(gameBoard, row, col, -1, 1)
+    clearPath(gameBoard, row, col, -1, -1)
 
 def horseMoveCheck(gameBoard, row, col):
-    horseMoves = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
+    horseMoves = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]]
     for i in BOARDSIZE:
         newRow=row+horseMoves[i][0]
         newCol=col+horseMoves[i][1]
@@ -168,10 +176,10 @@ def horseMoveCheck(gameBoard, row, col):
                 gameBoard.board[row][col].moveList.append([newRow,newCol])
 
 def rookMoveCheck(gameBoard, row, col):
-    clearPath(gameBoard, row, col, 0, 1);
-    clearPath(gameBoard, row, col, 1, 0);
-    clearPath(gameBoard, row, col, 0, -1);
-    clearPath(gameBoard, row, col, -1, 0);
+    clearPath(gameBoard, row, col, 0, 1)
+    clearPath(gameBoard, row, col, 1, 0)
+    clearPath(gameBoard, row, col, 0, -1)
+    clearPath(gameBoard, row, col, -1, 0)
 
 def pawnMoveCheck(gameBoard, row, col):
     direction = 0
@@ -221,14 +229,14 @@ def clearPath(struct Game* gameBoard, int ogRow, int ogCol, int xDir, int yDir):
     for _ in BOARDSIZE:
         row+=xDir
         col+=yDir
-        if(outOfBounds(row,col))
-          return;
-        elif gameBoard.board[row][col].type==EMPTY
+        if outOfBounds(row,col):
+          return
+        elif gameBoard.board[row][col].type==EMPTY:
             gameBoard.board[ogRow][ogCol].moveList.append([row,col])
-        elif gameBoard.board[row][col].color!=gameBoard.board[ogRow][ogCol].color
+        elif gameBoard.board[row][col].color!=gameBoard.board[ogRow][ogCol].color:
             gameBoard.board[ogRow][ogCol].moveList.append([row,col])
             return
-        else
+        else:
             return
 
 # INCOMPLETE
@@ -244,7 +252,28 @@ def checkmateDetection():
 
 #### 'main' 
 mainGame = createGame() # create object for new game
-
 gameLoop = True 
+startButton = 1
 # main loop
 while gameLoop:
+    if startButton:
+        setupBoard(mainGame)
+        printBoard(mainGame)
+        color=WHITE
+        while true:
+            calculateMoves(mainGame)
+            boardTurn(mainGame,color)
+            printBoard(mainGame)
+            if gameBoard.win==WHITE:
+                print('white wins!!')
+            elif gameBoard.win==BLACK:
+                print('black wins!!')
+            elif gameBoard.win==STALE:
+                print('stalemate :(')
+            else:
+                if color == WHITE:
+                    color = BLACK
+                else
+                    color = WHITE
+
+            

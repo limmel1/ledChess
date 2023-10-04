@@ -3,7 +3,6 @@
 # LED Chess
 
 BOARDSIZE = 8
-NOMOVES = -9
 
 WHITE = 'w'
 BLACK = 'b'
@@ -17,14 +16,12 @@ BISHOP = 'B'
 QUEEN = 'Q'
 KING = 'K'
 
-NUM_MOVES = 30 
-
 class Piece:
     def __init__(self, color, type, moved=False):
         self.color = color
         self.type = type
         self.moved = moved
-        self.moveList = [[NOMOVES, NOMOVES] for _ in range(NUM_MOVES)]
+        self.moveList = []
 
 class Game:
     def __init__(self):
@@ -42,9 +39,7 @@ def createGame():
 
 # check if piece in bounds
 def outOfBounds(row, col):
-    if row < 0 or row >= BOARDSIZE or col < 0 or col >= BOARDSIZE:
-        return True
-    return False
+    return row < 0 or row >= BOARDSIZE or col < 0 or col >= BOARDSIZE:
 
 # update piece info
 def setPiece(gameBoard, row, col, newColor, newType, newMove):
@@ -59,7 +54,7 @@ def movePiece(gameBoard, ogRow, ogCol, newRow, newCol):
         if newRow == 0 or newRow == BOARDSIZE-1:
             gameBoard.board[newRow][newCol].type = QUEEN
 
-    # en passant
+    # en passant not functioning correctly
     if newCol != ogCol and gameBoard.board[newRow][newCol].type != PAWN
         setPiece(gameBoard, ogRow, newCol, EMPTY, EMPTY, True)
 
@@ -73,21 +68,20 @@ def movePiece(gameBoard, ogRow, ogCol, newRow, newCol):
     gameBoard.board[ogRow][ogCol].color = EMPTY
     gameBoard.board[ogRow][ogCol].moved = True
 
-#CONFUSED
+# fixed CONFUSED no longer
 # set up game board for new game
 def setupBoard(newGame):
     row = 0
     col = 0
-    color = ''
+    color = BLACK
 
     for row in BOARDSIZE:
-        color = WHITE
-        if row == 0 or row == 1:
-            color = BLACK
-        elif row == 6:
+        if row = 3:
+            color = WHITE
+        if row == 6 or row == 1:
             for col in BOARDSIZE:
                 setPiece(newGame,row,col,color,PAWN,False)
-        elif row == 7:
+        elif row == 7 or row == 0:
             setPiece(newGame,row,0,color,ROOK,False)
             setPiece(newGame,row,1,color,HORSE,False)
             setPiece(newGame,row,2,color,BISHOP,False)
@@ -101,31 +95,83 @@ def setupBoard(newGame):
                 setPiece(newGame,row,col,EMPTY,EMPTY,True)
 
 def printBoard():
-    return False
+    print(' A   B   C   D   E   F   G   H')
+    for row in BOARDSIZE:
+        print(BOARDSIZE-row,end='')
+        for col in BOARDSIZE:
+            print(gameBoard.board[row][col].color, gameBoard.board[row][col].type, end='')
+        print('')
 
-def boardTurn():
-    return False
+def boardTurn(gameBoard, playerColor):
+    turn = true
+    while turn:
+        print(playerColor, 'enter moves in the following format: (A-H)(1-8)-(A-H)(1-8)')
+        print('enter the move you would like to make:')
+        input=input()
+        ogCol=(int)input[0]-(int)('A')
+        ogRow=BOARDSIZE-((int)(input[1])-(int)('0'))
+        newCol=(int)input[3]-(int)('A')
+        newRow=BOARDSIZE-((int)(input[4])-(int)('0'))
 
 def moveValidation():
     return False
 
-def calculateMoves():
-    return False
+def calculateMoves(gameBoard):
+    for row in BOARDSIZE:
+        for col in BOARDSIZE:
+            type=gameBoard.board[row][col].type
+            if type == PAWN:
+                pawnMoveCheck(gameBoard, row, col)
+            elif type == ROOK:
+                rookMoveCheck(gameBoard, row, col)
+            elif type == HORSE:
+                horseMoveCheck(gameBoard, row, col)
+            elif type == BISHOP:
+                bishopMoveCheck(gameBoard, row, col)
+            elif type == QUEEN:
+                queenMoveCheck(gameBoard, row, col)
+            elif type == KING:
+                kingMoveCheck(gameBoard, row, col)
+            print(gameBoard.board[row][col],'can move to:')
+            print(gameBoard.board[row][col].moveList[i][0],gameBoard.board[row][col].moveList[i][1]) for i in len(moveList)
 
-def kingMoveCheck():
-    return False
+def kingMoveCheck(gameBoard, row, col):
+    for r in BOARDSIZE:
+        for c in BOARDSIZE:
+            if not (r==row&&c==col or outOfBounds(r,c) or gameBoard.board[r][c].color==gameBoard.board[row][col].color):
+                gameBoard.board[row][col].moveList.append([r,c])
+    if gameBoard.board[row][col].moved==false and gameBoard.checked==false:
+        if gameBoard.board[row][0].moved==false:
+            if gameBoard.board[row][1].type==EMPTY and gameBoard.board[row][2].type==EMPTY and gameBoard.board[row][3].type==EMPTY:
+                gameBoard.board[row][col].moveList.append([row,col-2])
+        if gameBoard.board[row][BOARDSIZE-1].moved==false:
+            if gameBoard.board[row][BOARDSIZE-2].type==EMPTY and gameBoard.board[row][BOARDSIZE-3].type==EMPTY:
+                gameBoard.board[row][col].moveList.append([row,col+2])
 
-def queenMoveCheck():
-    return False
+def queenMoveCheck(gameBoard, row, col):
+    bishopMoveCheck(gameBoard, row, col)
+    rookMoveCheck(gameBoard, row, col)
 
-def bishopMoveCheck():
-    return False
+def bishopMoveCheck(gameBoard, row, col):
+    clearPath(gameBoard, row, col, 1, 1);
+    clearPath(gameBoard, row, col, 1, -1);
+    clearPath(gameBoard, row, col, -1, 1);
+    clearPath(gameBoard, row, col, -1, -1);
 
-def horseMoveCheck():
-    return False
+def horseMoveCheck(gameBoard, row, col):
+    horseMoves = [[1,2],[1,-2],[-1,2],[-1,-2],[2,1],[2,-1],[-2,1],[-2,-1]];
+    for i in BOARDSIZE:
+        newRow=row+horseMoves[i][0]
+        newCol=col+horseMoves[i][1]
+        if not outOfBounds(newRow,newCol):
+            if gameBoard.board[newRow][newCol].color!=gameBoard->board[row][col].color:
+                gameBoard.board[row][col].moveList.append([newRow,newCol])
 
-def rookMoveCheck():
-    return False
+def rookMoveCheck(gameBoard, row, col):
+    clearPath(gameBoard, row, col, 0, 1);
+    clearPath(gameBoard, row, col, 1, 0);
+    clearPath(gameBoard, row, col, 0, -1);
+    clearPath(gameBoard, row, col, -1, 0);
 
 def pawnMoveCheck(gameBoard, row, col):
     direction = 0
@@ -139,53 +185,51 @@ def pawnMoveCheck(gameBoard, row, col):
 
     # move pawn forward by 1
     if (not outOfBounds(row+direction, col)) and gameBoard.board[row+direction][col].type==EMPTY:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction
-        gameBoard.board[row][col].moveList[moveInt][1] = col
-        moveInt++
+        gameBoard.board[row][col].moveList.append([row+direction,col])
 
     # move pawn forward by 2
     if gameBoard.board[row][col].moved==False and gameBoard.board[row+direction][col].type==EMPTY
             and gameBoard.board[row+direction*2][col].type==EMPTY:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction*2
-        gameBoard.board[row][col].moveList[moveInt][1] = col
-        moveInt++
+        gameBoard.board[row][col].moveList.append([row+direction*2,col])
 
     # take piece on right
     if (not outOfBounds(row+direction, col+1)) and gameBoard.board[row+direction][col+1].color!=gameBoard.board[row][col].color
             and gameBoard.board[row+direction][col+1].type!=EMPTY:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction
-        gameBoard.board[row][col].moveList[moveInt][1] = col+1
-        moveInt++
+        gameBoard.board[row][col].moveList.append([row+direction,col+1])
 
     # take piece on left
-    # why compare type to color?
-    if (not outOfBounds(row+direction, col-1)) and gameBoard.board[row+direction][col-1].type!=gameBoard.board[row][col].color
+    if (not outOfBounds(row+direction, col-1)) and gameBoard.board[row+direction][col-1].color!=gameBoard.board[row][col].color
             and gameBoard.board[row+direction][col-1].type!=EMPTY:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction
-        gameBoard.board[row][col].moveList[moveInt][1] = col-1
-        moveInt++
+        gameBoard.board[row][col].moveList.append([row+direction,col-1])
 
-    # en passant on right
+    # en passant on right this is not correct must check prev move
     if (not outOfBounds(row, col+1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col+1].type==PAWN
             and gameBoard.board[row+direction][col].type==EMPTY and gameBoard.board[row+direction][col+1].type==EMPTY
             and gameBoard.board[row][col+1].color!=gameBoard.board[row][col].color:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction
-        gameBoard.board[row][col].moveList[moveInt][1] = col+1
-        moveInt++
+        gameBoard.board[row][col].moveList.append([row+direction,col+1])
 
-    # en passant on left
+    # en passant on left this is not correct must check prev move
     if (not outOfBounds(row, col-1)) and (not outOfBounds(row+direction,col)) and gameBoard.board[row][col-1].type==PAWN
             and gameBoard.board[row-direction][col].type==EMPTY and gameBoard.board[row+direction][col-1].type==EMPTY
             and gameBoard.board[row][col-1].color!=gameBoard.board[row][col].color:
-        gameBoard.board[row][col].moveList[moveInt][0] = row+direction
-        gameBoard.board[row][col].moveList[moveInt][1] = col-1
-        moveInt++
-
-    gameBoard.board[row][col].moveList[moveInt][0] = NOMOVES
+        gameBoard.board[row][col].moveList.append([row+direction,col-1])
 
 # checks if path is clear for rook, bishop, & queen moves
-def clearPath():
-    return False
+def clearPath(struct Game* gameBoard, int ogRow, int ogCol, int xDir, int yDir):
+    row=ogRow
+    col=ogCol
+    for _ in BOARDSIZE:
+        row+=xDir
+        col+=yDir
+        if(outOfBounds(row,col))
+          return;
+        elif gameBoard.board[row][col].type==EMPTY
+            gameBoard.board[ogRow][ogCol].moveList.append([row,col])
+        elif gameBoard.board[row][col].color!=gameBoard.board[ogRow][ogCol].color
+            gameBoard.board[ogRow][ogCol].moveList.append([row,col])
+            return
+        else
+            return
 
 # INCOMPLETE
 # looks for checks by copying game board and testing all king moves

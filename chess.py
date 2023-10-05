@@ -29,6 +29,7 @@ class Game:
         self.win = EMPTY # not implemented
         self.blackMoves = []
         self.whiteMoves = []
+        self.history = []  # not implemented
 
 # create object for new game
 def createGame():
@@ -95,9 +96,9 @@ def setupBoard(newGame):
                 setPiece(newGame,row,col,EMPTY,EMPTY,True)
 
 def printBoard(gameBoard):
-    print(' 0  1  2  3  4  5  6  7')
+    print('  0  1  2  3  4  5  6  7')
     for row in range(BOARDSIZE):
-        print(row,end='')
+        print(row,'',end='')
         for col in range(BOARDSIZE):
             print(gameBoard.board[row][col].color, gameBoard.board[row][col].type, ' ' ,sep='', end='')
         print('')
@@ -155,7 +156,6 @@ def calculateMoves(gameBoard):
               if gameBoard.board[row][col].color == BLACK:
                   for newRow, newCol in moveList:
                       gameBoard.blackMoves.append([[row,col],[newRow, newCol]])
-    #checkRemove(gameBoard)#not implemented
 
 def kingMoveCheck(gameBoard, row, col):
     moveList=[]
@@ -248,16 +248,55 @@ def pawnMoveCheck(gameBoard, row, col):
         moveList.append([row+direction,col-1])
     return moveList
 
-# INCOMPLETE
+def copyGame(copyBoard):
+  copy=createGame()
+  setupBoard(copy)
+  for r in range(BOARDSIZE):
+    for c in range(BOARDSIZE):
+      copy.board[r][c].type=copyBoard.board[r][c].type
+      copy.board[r][c].color=copyBoard.board[r][c].color
+      copy.board[r][c].moved=copyBoard.board[r][c].moved
+  return copy
+
+#removes moves that would place the king in danger by testing all possible moves for playerColor
+def checkRemoval(gameBoard, playerColor):
+    if playerColor==WHITE:
+        posMoves = gameBoard.whiteMoves
+    else:
+        posMoves = gameBoard.blackMoves
+    for [ogRow,ogCol],[newRow,newCol] in posMoves:
+        fakeBoard = copyGame(gameBoard)
+        movePiece(fakeBoard, ogRow, ogCol, newRow, newCol)
+        calculateMoves(fakeBoard)
+        if(checkDetection(fakeBoard,playerColor)):#puts/leaves king in danger
+            if playerColor==WHITE:
+                gameBoard.whiteMoves.remove([[ogRow,ogCol],[newRow,newCol]])
+            else:
+                gameBoard.blackMoves.remove([[ogRow,ogCol],[newRow,newCol]])
+
 # looks for checks by copying game board and testing all king moves
-def checkDetection():
+def checkDetection(gameBoard,playerColor):
+    kingX=-1
+    kingY=-1
+    for row in range(BOARDSIZE):
+        for col in range(BOARDSIZE):
+            if gameBoard.board[row][col].type==KING and gameBoard.board[row][col].color==playerColor:
+                kingX=row
+                kingY=col
+    if kingX==-1:
+        print('this should never happen')
+    else:
+       for [[ogRow ,ogCol ] ,[newRow,newCol]] in gameBoard.whiteMoves:
+            if newRow == kingX and newCol==kingY:
+              return True
     return False
 
-# INCOMPLETE
-# runs check detection on all possible king positions
-def checkmateDetection():
-    return False
-
+def checkmateDetection(gameBoard,playerColor):
+    if playerColor==WHITE and gameBoard.whiteMoves==[]:
+        return WHITE
+    if playerColor==BLACK and gameBoard.blackMoves==[]:
+        return BLACK
+    return EMPTY
 
 #### 'main'
 mainGame = createGame() # create object for new game
@@ -267,18 +306,22 @@ startButton = 1
 while gameLoop:
     if startButton:
         setupBoard(mainGame)
-        printBoard(mainGame)
         color=WHITE
         while True:
             calculateMoves(mainGame)
-            boardTurn(mainGame,color)
+            checkRemoval(mainGame,color)
+            mainGame.win=checkmateDetection(mainGame,color)
             printBoard(mainGame)
+            boardTurn(mainGame,color)
             if mainGame.win==WHITE:
                 print('white wins!!')
+                break
             elif mainGame.win==BLACK:
                 print('black wins!!')
+                break
             elif mainGame.win==STALE:
                 print('stalemate :(')
+                break
             else:
                 if color == WHITE:
                     color = BLACK

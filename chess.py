@@ -102,6 +102,11 @@ def printBoard(gameBoard):
         for col in range(BOARDSIZE):
             print(gameBoard.board[row][col].color, gameBoard.board[row][col].type, ' ' ,sep='', end='')
         print('')
+    for [[ogRow ,ogCol ] ,[newRow,newCol]] in gameBoard.whiteMoves:
+        print(ogRow, ogCol, ':', newRow, newCol)
+    for [[ogRow ,ogCol ] ,[newRow,newCol]] in gameBoard.blackMoves:
+        print(ogRow, ogCol, ':', newRow, newCol)
+    
 
 def boardTurn(gameBoard, playerColor):
     turn = True
@@ -159,8 +164,8 @@ def calculateMoves(gameBoard):
 
 def kingMoveCheck(gameBoard, row, col):
     moveList=[]
-    for r in range(BOARDSIZE):
-        for c in range(BOARDSIZE):
+    for r in range(row-1,row+2):
+        for c in range(col-1,col+2):
             if not ((r==row and c==col) or outOfBounds(r,c) or gameBoard.board[r][c].color==gameBoard.board[row][col].color):
                 moveList.append([r,c])
     if gameBoard.board[row][col].moved==False and gameBoard.checked==False:

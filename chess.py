@@ -1,6 +1,9 @@
+# pyChess.py
 # ECE Sr Design 2
 # Team 6: Tyler Ginn, Logan Immel, Matthew Britt, Krut Patel
 # LED Chess
+
+import PySimpleGUI as sg
 
 BOARDSIZE = 8
 
@@ -111,13 +114,15 @@ def printBoard(gameBoard):
 def boardTurn(gameBoard, playerColor):
     turn = True
     while turn:
-        print(playerColor, 'enter moves in the following format: (0-7)(0-7)-(0-7)(0-7)')
-        print('enter the move you would like to make:')
-        inputt=input()
-        ogCol=int(inputt[0])
-        ogRow=int(inputt[1])
-        newCol=int(inputt[3])
-        newRow=int(inputt[4])
+        print(playerColor, 'enter moves in the following format: (col)(row)')
+        print('enter the position of the piece you would like to move:')
+        startInput=input()
+        ogCol=int(startInput[0])
+        ogRow=int(startInput[1])
+        print('enter new position of the piece:')
+        endInput=input()
+        newCol=int(endInput[0])
+        newRow=int(endInput[1])
         if moveValid(gameBoard,playerColor,ogRow,ogCol,newRow,newCol):
             turn=False
         else:
@@ -303,34 +308,110 @@ def checkmateDetection(gameBoard,playerColor):
         return BLACK
     return EMPTY
 
-#### 'main'
-mainGame = createGame() # create object for new game
-gameLoop = True
-startButton = 1
-# main loop
-while gameLoop:
-    if startButton:
-        setupBoard(mainGame)
-        color=WHITE
-        while True:
-            calculateMoves(mainGame)
-            checkRemoval(mainGame,color)
-            mainGame.win=checkmateDetection(mainGame,color)
-            printBoard(mainGame)
-            boardTurn(mainGame,color)
-            if mainGame.win==WHITE:
-                print('white wins!!')
-                break
-            elif mainGame.win==BLACK:
-                print('black wins!!')
-                break
-            elif mainGame.win==STALE:
-                print('stalemate :(')
-                break
-            else:
+# uses game data to overlay chess pieces on the correct tiles
+def updateImages():
+    for x in range(BOARDSIZE):
+        for y in range(BOARDSIZE):
+            piece = mainGame.board[x][y].type
+            color = mainGame.board[x][y].color
+
+            if piece == PAWN:
                 if color == WHITE:
-                    color = BLACK
+                    window[x,y].update(image_filename="white_pawn.png")
                 else:
-                    color = WHITE
+                    window[x,y].update(image_filename="black_pawn.png")
+            elif piece == ROOK:
+                if color == WHITE:
+                    window[x,y].update(image_filename="white_rook.png")
+                else:
+                    window[x,y].update(image_filename="black_rook.png")
+            elif piece == BISHOP:
+                if color == WHITE:
+                    window[x,y].update(image_filename="white_bishop.png")
+                else:
+                    window[x,y].update(image_filename="black_bishop.png")
+            elif piece == HORSE:
+                if color == WHITE:
+                    window[x,y].update(image_filename="white_horse.png")
+                else:
+                    window[x,y].update(image_filename="black_horse.png")
+            elif piece == QUEEN:
+                if color == WHITE:
+                    window[x,y].update(image_filename="white_queen.png")
+                else:
+                    window[x,y].update(image_filename="black_queen.png")
+            elif piece == KING:
+                if color == WHITE:
+                    window[x,y].update(image_filename="white_king.png")
+                else:
+                    window[x,y].update(image_filename="black_king.png")
+            else:
+                window[x,y].update(image_filename="empty.png")
+                
 
+#### 'main'
+# gui layout
+color = False
+layout = [
+    [sg.Button(
+        button_color=(
+            ('linen', 'linen') if ((col + 1) + (row + 1)) % 2 == 0 else ('slate gray', 'slate gray')
+        ),
+        size=(4, 3),
+        key=(row, col),
+        pad=(0, 0),
+        auto_size_button=True,
+        disabled=True,)
+        for col in range(0, 8)
+    ]
+    for row in range(0, 8)
+]
 
+# gui window
+window = sg.Window("Chess", layout, margins=(0, 0), finalize=True)
+
+# Game loop
+playerColor = WHITE
+startButton = True 
+while True:
+    # initialize new game
+    if startButton:
+        mainGame = createGame() 
+        setupBoard(mainGame)
+        playerColor = WHITE
+        updateImages()
+        startButton = False
+
+    # check board
+    calculateMoves(mainGame)
+    checkRemoval(mainGame, playerColor)
+    mainGame.win = checkmateDetection(mainGame, playerColor)
+    printBoard(mainGame)
+    boardTurn(mainGame, playerColor)
+    if mainGame.win == WHITE:
+        print('white wins!!')
+        startButton = True
+    elif mainGame.win == BLACK:
+        print('black wins!!')
+        startButton = True 
+    elif mainGame.win == STALE:
+        print('stalemate :(')
+        startButton = True
+    else:
+        if playerColor == WHITE:
+            playerColor = BLACK
+        else:
+            playerColor = WHITE
+
+    # function not written yet
+    #if startButtonPressed():
+    #    startButton = True
+
+    # update gui
+    updateImages() 
+
+    event, values = window.read(timeout=100)
+    if event == sg.WIN_CLOSED:
+        break
+
+window.close()

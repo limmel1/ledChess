@@ -268,7 +268,7 @@ def copyGame(copyBoard):
       copy.board[r][c].moved=copyBoard.board[r][c].moved
   return copy
 
-#removes moves that would place the king in danger by testing all possible moves for playerColor
+# removes moves that would place the king in danger by testing all possible moves for playerColor
 def checkRemoval(gameBoard, playerColor):
     if playerColor==WHITE:
         posMoves = gameBoard.whiteMoves

@@ -116,10 +116,9 @@ def update(greenData,blueData):
         for col in range(BOARDSIZE):
             sendData(greenData[col+row*BOARDSIZE],LEDData,LEDLatch,LEDShift)
             sendData(blueData[col+row*BOARDSIZE],LEDData,LEDLatch,LEDShift)
-        print('row', row)
         GPIO.output(LEDOut,GPIO.LOW)
         GPIO.output(rowOut,GPIO.LOW)
-        time.sleep(0.00001)
+        time.sleep(delay)
     GPIO.output(LEDOut,GPIO.HIGH)
     GPIO.output(rowOut,GPIO.HIGH)
     
@@ -129,7 +128,7 @@ def updateLED():
     for x in range(BOARDSIZE):
         for y in range(BOARDSIZE):
             if [x, y] in legalMoves:
-                greenData[x][y]=1
+                greenData[y+x*BOARDSIZE]=1
     update(revRow(greenData),revRow(blueData))
 
 
@@ -205,7 +204,7 @@ def setupBoard(newGame):
     GPIO.output(rowData,GPIO.LOW)
 
     GPIO.output(masterReset,GPIO.LOW)
-    time.sleep(1)
+    time.sleep(0.1)
     GPIO.output(masterReset,GPIO.HIGH)
 
     color = BLACK
@@ -246,50 +245,52 @@ def boardTurn(gameBoard, playerColor):
     state=0
     turn = True
     legalMoves.clear()
-    updateImages()
-    while turn:
-        legalMoves.clear()
+    updateImages(gameBoard)
+    printBoard(gameBoard)  # Print the current board
+    print(playerColor, 'enter moves in the following format: (col)(row)')
+    print('enter the position of the piece you would like to move:')
+    while state!=2:
         if state == 0:
-            printBoard(gameBoard)  # Print the current board
-            print(playerColor, 'enter moves in the following format: (col)(row)')
-            print('enter the position of the piece you would like to move:')
+            legalMoves.clear()
             startInput = getButton()
-            if startInput==-1:
-                ogCol = startInput/BOARDSIZE
-                ogRow = startInput%BOARDSIZE
+            if startInput!=-1:
+                ogCol = int(startInput%BOARDSIZE)
+                ogRow = int(startInput/BOARDSIZE)
+
+                print(startInput, ogCol, ogRow)
 
                 legalMoves = findMoves(gameBoard, playerColor, ogRow, ogCol)
-                updateImages()
+                updateImages(gameBoard)
 
                 print(f'legal moves at ({ogCol}, {ogRow}): {legalMoves}')
                 if not legalMoves:
                     print('no legal moves')
+                    print('button pressed:', startInput)
                     continue
                 else:
                     state=1
         if state==1:
+            updateImages(gameBoard)
             updateLED()
-            print('enter the new position:')
             endInput = getButton()
             if endInput!=-1:
-                newCol = endInput/BOARDSIZE
-                newRow = endInput%BOARDSIZE
+                newCol = int(endInput%BOARDSIZE)
+                newRow = int(endInput/BOARDSIZE)
 
                 if [newRow, newCol] in legalMoves:
                     if moveValid(gameBoard, playerColor, ogRow, ogCol, newRow, newCol):
-                        turn = False
+                        state=2
                         #movePiece(gameBoard, ogRow, ogCol, newRow, newCol) #the horror
                     else:
                         print('invalid move...')
+                        print('button pressed:', endInput)
                         state=0
                 else:
                     print('not a legal move...')
+                    print('button pressed:', endInput)
                     state=0
-                legalMoves.clear()
-                updateImages()
-
-
-
+                #legalMoves.clear()
+                updateImages(gameBoard)
 
 def moveValid(gameBoard,playerColor,ogRow,ogCol,newRow,newCol):
     if gameBoard.board[ogRow][ogCol].color==playerColor:
@@ -366,13 +367,13 @@ def clearPath(gameBoard, ogRow, ogCol, dir):
     return moveList
 
 def queenMoveCheck(gameBoard, row, col):
-    return clearPath(gameBoard,row,col,[[1,1],[1,-1],[-1,1],[-1,-1],[0,1],[1,0],[0,1],[-1,0]])
+    return clearPath(gameBoard,row,col,[[1,1],[1,-1],[-1,1],[-1,-1],[0,1],[1,0],[0,-1],[-1,0]])
 
 def bishopMoveCheck(gameBoard, row, col):
     return clearPath(gameBoard, row, col, [[1,1],[1,-1],[-1,1],[-1,-1]])
 
 def rookMoveCheck(gameBoard, row, col):
-    return clearPath(gameBoard, row, col, [[0,1],[1,0],[0,1],[-1,0]])
+    return clearPath(gameBoard, row, col, [[0,1],[1,0],[0,-1],[-1,0]])
 
 def horseMoveCheck(gameBoard, row, col):
     moveList=[]
@@ -472,7 +473,7 @@ def checkmateDetection(gameBoard,playerColor):
     return EMPTY
 
 # uses game data to overlay chess pieces on the correct tiles
-def updateImages():
+def updateImages(mainGame):
     for x in range(BOARDSIZE):
         for y in range(BOARDSIZE):
             piece = mainGame.board[x][y].type
@@ -520,14 +521,6 @@ def updateImages():
                     window[x,y].update(image_filename="black_king.png")
             else:
                 window[x,y].update(image_filename="empty.png")
-
-#def findMoves(gameBoard, playerColor, row, col):
-#    legalMoves = []
-#    for newRow in range(BOARDSIZE):
-#        for newCol in range(BOARDSIZE):
-#            if moveValid(gameBoard, playerColor, row, col, newRow, newCol):
-#                legalMoves.append([newRow, newCol])
-#    return legalMoves
 
 def findMoves(gameBoard, playerColor, row, col):
     piece_type = gameBoard.board[row][col].type
@@ -577,7 +570,7 @@ while True:
         mainGame = createGame() 
         setupBoard(mainGame)
         playerColor = WHITE
-        updateImages()
+        updateImages(mainGame)
         startButton = False
 
     # check board
@@ -606,7 +599,7 @@ while True:
     #    startButton = True
 
     # update gui
-    updateImages() 
+    updateImages(mainGame) 
 
     event, values = window.read(timeout=100)
     if event == sg.WIN_CLOSED:

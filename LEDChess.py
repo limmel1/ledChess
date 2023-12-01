@@ -10,8 +10,7 @@ import time
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-delay = 0.00001
-
+delay = 0.0001
 # output pins
 #power pin 1
 #GND pin
@@ -244,6 +243,8 @@ def boardTurn(gameBoard, playerColor):
     global legalMoves  # Declare legalMoves as a global variable
     state=0
     turn = True
+    calculateMoves(mainGame)
+    checkRemoval(mainGame, playerColor)
     legalMoves.clear()
     updateImages(gameBoard)
     printBoard(gameBoard)  # Print the current board
@@ -260,7 +261,7 @@ def boardTurn(gameBoard, playerColor):
                 print(startInput, ogCol, ogRow)
 
                 legalMoves = findMoves(gameBoard, playerColor, ogRow, ogCol)
-                updateImages(gameBoard)
+                #updateImages(gameBoard)
 
                 print(f'legal moves at ({ogCol}, {ogRow}): {legalMoves}')
                 if not legalMoves:
@@ -270,7 +271,7 @@ def boardTurn(gameBoard, playerColor):
                 else:
                     state=1
         if state==1:
-            updateImages(gameBoard)
+            #updateImages(gameBoard)
             updateLED()
             endInput = getButton()
             if endInput!=-1:
@@ -289,8 +290,7 @@ def boardTurn(gameBoard, playerColor):
                     print('not a legal move...')
                     print('button pressed:', endInput)
                     state=0
-                #legalMoves.clear()
-                updateImages(gameBoard)
+            updateImages(gameBoard)
 
 def moveValid(gameBoard,playerColor,ogRow,ogCol,newRow,newCol):
     if gameBoard.board[ogRow][ogCol].color==playerColor:
@@ -443,6 +443,7 @@ def checkRemoval(gameBoard, playerColor):
         movePiece(fakeBoard, ogRow, ogCol, newRow, newCol)
         calculateMoves(fakeBoard)
         if(checkDetection(fakeBoard,playerColor)):#puts/leaves king in danger
+            print('this happened AAAAAAAAAAAAAAAAAAAAAAA')
             if playerColor==WHITE:
                 gameBoard.whiteMoves.remove([[ogRow,ogCol],[newRow,newCol]])
             else:
@@ -450,6 +451,10 @@ def checkRemoval(gameBoard, playerColor):
 
 # looks for checks by copying game board and testing all king moves
 def checkDetection(gameBoard,playerColor):
+    if playerColor!=WHITE:
+        posMoves = gameBoard.whiteMoves
+    else:
+        posMoves = gameBoard.blackMoves
     kingX=-1
     kingY=-1
     for row in range(BOARDSIZE):
@@ -460,7 +465,7 @@ def checkDetection(gameBoard,playerColor):
     if kingX==-1:
         print('this should never happen')
     else:
-       for [[ogRow ,ogCol ] ,[newRow,newCol]] in gameBoard.whiteMoves:
+       for [[ogRow ,ogCol ] ,[newRow,newCol]] in posMoves:
             if newRow == kingX and newCol==kingY:
               return True
     return False
@@ -523,22 +528,29 @@ def updateImages(mainGame):
                 window[x,y].update(image_filename="empty.png")
 
 def findMoves(gameBoard, playerColor, row, col):
-    piece_type = gameBoard.board[row][col].type
-
-    if piece_type == PAWN:
-        return pawnMoveCheck(gameBoard, row, col)
-    elif piece_type == ROOK:
-        return rookMoveCheck(gameBoard, row, col)
-    elif piece_type == HORSE:
-        return horseMoveCheck(gameBoard, row, col)
-    elif piece_type == BISHOP:
-        return bishopMoveCheck(gameBoard, row, col)
-    elif piece_type == QUEEN:
-        return queenMoveCheck(gameBoard, row, col)
-    elif piece_type == KING:
-        return kingMoveCheck(gameBoard, row, col)
+    temp=[]
+    if playerColor==WHITE:
+        posMoves = gameBoard.whiteMoves
     else:
-        return []
+        posMoves = gameBoard.blackMoves
+    for [ogRow,ogCol],[newRow,newCol] in posMoves:
+        if ogRow==row and ogCol==col:
+            temp.append([newRow,newCol])
+    return temp
+#    if piece_type == PAWN:
+#        return pawnMoveCheck(gameBoard, row, col)
+#    elif piece_type == ROOK:
+#        return rookMoveCheck(gameBoard, row, col)
+#    elif piece_type == HORSE:
+#        return horseMoveCheck(gameBoard, row, col)
+#    elif piece_type == BISHOP:
+#        return bishopMoveCheck(gameBoard, row, col)
+#    elif piece_type == QUEEN:
+#        return queenMoveCheck(gameBoard, row, col)
+#    elif piece_type == KING:
+#        return kingMoveCheck(gameBoard, row, col)
+#    else:
+#        return []
 
 #### 'main'
 # gui layout
@@ -570,23 +582,25 @@ while True:
         mainGame = createGame() 
         setupBoard(mainGame)
         playerColor = WHITE
+        time.sleep(1)
         updateImages(mainGame)
         startButton = False
 
     # check board
-    calculateMoves(mainGame)
-    checkRemoval(mainGame, playerColor)
-    mainGame.win = checkmateDetection(mainGame, playerColor)
     printBoard(mainGame)
     boardTurn(mainGame, playerColor)
+    mainGame.win = checkmateDetection(mainGame, playerColor)
     if mainGame.win == WHITE:
         print('white wins!!')
+        time.sleep(10)
         startButton = True
     elif mainGame.win == BLACK:
         print('black wins!!')
+        time.sleep(10)
         startButton = True 
     elif mainGame.win == STALE:
         print('stalemate :(')
+        time.sleep(10)
         startButton = True
     else:
         if playerColor == WHITE:
